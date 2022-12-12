@@ -1,0 +1,184 @@
+#include <iostream>
+#include<cstdlib>
+using namespace std;
+
+void input(int n,int arr[])                         // Taking message from User
+{
+	cout<<"\nEnter binary digits of Message: "<<endl<<"\t\t";
+    for(int i=0; i<n; i++)
+    {
+    	cin>>arr[i];
+	}
+	cout<<endl;
+	cout<<"\nEntered Message is --> ";
+	for(int i=0; i<n; i++)
+	{
+		cout<<arr[i]<<" ";
+	}
+	cout<<endl;
+}
+void xor_of(int x[],int y[],int n)         // Performing Xor operation
+{
+	for(int i=0;i<n;i++)
+	{
+		if(x[i]==y[i])
+		  x[i]=0;
+		
+		else
+		  x[i]=1; 
+	}
+}
+void append(int x,int B[], int n, int arr[])   // Append zeros with message equal to degree of generator Polynomial
+{
+	for(int i=0; i<n; i++)
+	{
+		B[i]=arr[i];
+	}
+	for(int i=0; i<5; i++)
+	{
+		int y = n+i;
+		B[y]=0;
+	}
+	cout<<"\nMessage append with zeros is --> ";
+	for(int i=0; i<x; i++)
+	{
+		cout<<B[i]<<" ";
+	}
+	cout<<endl;
+}
+void sender(int n,int arr[],int rem[],int temp[],int B[],int A[])     //Send Message to receiver
+{
+	for(int i=0;i<5;i++)
+	{
+		temp[i]=B[i];
+	    rem[i]=0;
+	}
+	
+	//Division Algorithm
+	for(int i=4;i<n+4;i++)
+	{
+		temp[4]=B[i];
+		
+		if(temp[0]==0)
+		  xor_of(temp,rem,5);
+	
+		else
+	      xor_of(temp,A,5);
+		  
+		for(int j=1; j<5; j++) 
+		{
+			temp[j-1]=temp[j];
+		}
+	}
+		
+    cout<<"\nCheck Sum bits are: \n\n\t\t";
+	for(int i=0;i<4;i++)
+	  cout<<temp[i]<<" ";
+	cout<<endl;
+	for(int i=0;i<4;i++)
+	   rem[i]=rem[i+1];
+	   
+	   
+	cout<<"\n\nSender will send the message to receiver: \n\n\t\t";
+	for(int i=0;i<4;i++)
+	   arr[n+i]=temp[i];
+	
+	for(int i=0;i<n+4;i++)
+	  cout<<arr[i]<<" ";
+	cout<<endl;
+}
+void receiver(int n,int arr[],int temp[],int rem[],int B[],int A[])
+{
+	//Random Number Generate For Noise
+	int a=rand()%(5+n+5);
+	cout<<"\nRandom value:"<<a<<endl;
+	if(a<=(n-1))
+	{
+		arr[a]=!arr[a];
+		cout<<"\nMessage After adding Noise is --> ";
+	    for(int i=0;i<5+n-1;i++)
+	    {
+    		cout<<arr[i]<<" ";
+    	}
+    	cout<<endl;
+	}
+	else
+	{
+		cout<<"Noiseless Message is --> ";
+	    for(int i=0;i<5+n-1;i++)
+	    {
+    		cout<<arr[i]<<" ";
+    	}
+    	cout<<endl;
+	}
+	
+    for(int i=0;i<5;i++)
+	{
+		temp[i]=arr[i];
+	    rem[i]=0;
+	}
+
+	//Division Algorithm
+	for(int i=4;i<n+4;i++)
+	{
+		temp[4]=arr[i];
+		
+		if(temp[0]==0)
+		  xor_of(temp,rem,5);
+		
+		else
+		  xor_of(temp,A,5);
+		  
+		for(int j=1; j<5; j++) 
+		{
+			temp[j-1]=temp[j];
+		}
+		
+	}
+	cout<<"\nCheck Sum bits are: \n\n\t\t";
+	for(int i=0;i<4;i++)
+	  cout<<temp[i]<<" ";
+	cout<<endl;
+	
+	int flag = 1;
+	for(int i=0;i<4;i++)
+	{
+		if(temp[i]==1)
+		{
+			flag=0;
+			break;
+		}
+	}
+	
+	if(flag==1)
+	cout<<"\n\n\t\tThere is no ERROR in Message\n";
+	
+	else 
+	cout<<"\n\n\t\tThere is ERROR in Message\n";
+	
+}
+int main()        // Driver Code
+{
+    int n;                   //Size of Message 
+    int A[5] = {1,0,0,1,1};   //Storing generator Polynomial
+    int temp[20];        // Storing temporary data during division 
+	int rem[20];         //Storing remainder during division
+    cout<<"\nGiven generator polynomial is:"<<endl<<"\t\t";
+    for(int i=0; i<5; i++)
+    {
+    	cout<<A[i]<<" ";
+	}
+	cout<<endl;
+    cout<<"\nEnter number of binary digits in Frame: ";
+    cin>>n;
+    int arr[n];        //Storing message entered by user
+    input(n,arr);       // Calling input function
+    
+	int x = n+4;            // Size of new message append with zeros
+	int B[x];          //Storing message append with zeros   
+    append(x,B,n,arr);  // Calling append function
+	
+	sender(n,arr,rem,temp,B,A);   // Calling Sender function
+	receiver(n,arr,temp,rem,B,A);    // Calling Receiver function
+	return 0;
+}
