@@ -1,0 +1,267 @@
+#include<iostream>
+using namespace std;
+#include<math.h>
+#include<string>
+#include<climits>
+#include<algorithm>
+#include<cstdlib>
+
+
+int regenerator(int m){
+    int r=0;
+    while(true){
+        int ans=pow(2,r);
+        if(ans>=(m+r+1)){
+            return r;
+        }
+        r++;
+    }
+}
+
+void reverse1(int ar[],int n){
+    int st=0;
+    int end=n-1;
+    while(st<end){
+        swap(ar[st],ar[end]);
+        st++;
+        end--;
+    }
+}
+
+int findindex(int ar[],int n){
+    int ans=0;
+    for(int i=0;i<n;i++){
+        if(ar[i]==1){
+            ans+=pow(2,n-i-1);
+        }
+
+     }
+ 
+     return ans;
+        
+}
+
+
+
+int main(){
+    cout<<"Enter the length of message "<<endl;
+    int len;
+    cin>>len;
+    int ar1[len];
+    int red=regenerator(len);
+    int datalen=len+red;
+    cout<<"Enter the message"<<endl;
+    for(int i=0;i<len;i++){
+        cin>>ar1[i];
+    }
+    int ar2[datalen];
+    
+
+    for(int i=0;i<red;i++){
+        int pos=pow(2,i);
+        ar2[datalen-pos]=INT_MIN;
+    }
+   
+    int cnt=0;
+    for(int i=0;i<datalen;i++){
+        if(ar2[i]!=INT_MIN){
+            ar2[i]=ar1[cnt++];
+
+        }
+        
+    }
+    cout<<"Redundant bit and total bit  is "<<endl;
+    cout<<red<<" , "<<datalen<<endl;
+    cout<<"the data in msg is "<<endl;
+    for(int i=0;i<datalen;i++){
+        cout<<ar2[i]<<" ";
+    }
+    int ar3[red][datalen+1];
+    for(int i=0;i<red;i++){
+        for(int j=0;j<datalen+1;j++){
+            ar3[i][j]=-1;
+        }
+    }
+
+    cout<<endl;
+
+    for(int i=1;i<=datalen;i++){
+        int temp=i;
+        string s="";
+        while(true){
+            int rem=temp%2;
+            if(rem==0){
+                s+='0';
+
+            }
+            else{
+                s+='1';
+            }
+            temp=temp/2;
+            if(temp==0){
+                break;
+            }
+        }
+    
+        for(int j=s.length();j<red;j++){
+            s+='0';
+        }
+        reverse(s.begin(), s.end()); 
+       // cout<<s<<endl;
+        for(int j=0;j<s.length();j++){
+            if(s[j]=='1'){
+                ar3[red-j-1][i]=i;
+            }
+            
+        }
+        
+    }
+    // for(int i=0;i<red;i++){
+    //     for(int j=0;j<datalen+1;j++){
+    //        if(ar3[i][j]!=-1){
+    //            cout<<ar3[i][j]<<" ";
+    //        }
+         
+    //     }
+    //     cout<<endl;
+    // }
+
+    
+    int parity[red];
+    for(int i=0;i<red;i++){
+        int cnt=0;
+        for(int j=0;j<=datalen;j++){
+            int loc=ar3[i][j];
+            if(loc!=-1){
+                if(ar2[datalen-loc]==1){
+                    cnt++;
+                }
+            }
+        }
+        
+        if(cnt%2==0){
+            parity[i]=0;
+        }
+        else{
+            parity[i]=1;
+        }
+    }
+    for(int i=0;i<red;i++){
+        cout<<parity[i]<<" ";
+    }
+    cout<<endl;
+    int codeword[datalen];
+    int x=0;
+    for(int i=datalen-1;i>=0;i--){
+          if(ar2[i]==INT_MIN){
+              codeword[i]=parity[x];
+              x++;            
+          }
+          else{
+            codeword[i]=ar2[i];
+          }
+    }
+   
+   
+
+    cout<<"codeword is"<<endl; 
+    for(int i=0;i<datalen;i++){
+        cout<<codeword[i]<<" ";
+    }
+    cout<<endl;
+
+
+  //  codeword[datalen-3]=0;
+    // // now checking the error
+
+    int parity2[red];
+    
+    for(int i=0;i<red;i++){
+        int cnt=0;
+        for(int j=0;j<=datalen;j++){
+            int loc=ar3[i][j];
+            if(loc!=-1){
+               if(codeword[datalen-loc]==1){
+                cnt++;
+               } 
+            }
+            
+        }
+        if(cnt%2==0){
+            parity2[i]=0;
+        }
+        else{
+            parity2[i]=1;
+        }
+    }
+    
+    
+    reverse1(parity2,red);
+    cout<<"rem is"<<endl;
+    for(int i=0;i<red;i++){
+        cout<<parity2[i]<<" ";
+    }
+    cout<<endl;
+    int ans=findindex(parity2,red);
+    if(ans==0){
+        cout<<"No errror"<<endl;
+    }
+    else{
+        cout<<"Error at "<<ans<<endl;
+    }
+
+    
+    cout<<"Now for the error case"<<endl;
+    int n=rand()%(datalen+10);
+    cout<<"random no generated is "<<n<<endl;
+    if(n>=0 && n<datalen){
+        if(codeword[n]==1){
+            codeword[n]=0;
+        }
+        else{
+            codeword[n]=1;
+        }
+        
+    }
+      for(int i=0;i<red;i++){
+        int cnt=0;
+        for(int j=0;j<=datalen;j++){
+            int loc=ar3[i][j];
+            if(loc!=-1){
+               if(codeword[datalen-loc]==1){
+                cnt++;
+               } 
+            }
+            
+        }
+        if(cnt%2==0){
+            parity2[i]=0;
+        }
+        else{
+            parity2[i]=1;
+        }
+    }
+    
+    cout<<"Codeword becomes "<<endl;
+    for(int i=0;i<datalen;i++){
+        cout<<codeword[i]<<" ";
+    }
+    cout<<endl;
+    reverse1(parity2,red);
+    cout<<"rem is"<<endl;
+    for(int i=0;i<red;i++){
+        cout<<parity2[i]<<" ";
+    }
+    cout<<endl;
+     ans=findindex(parity2,red);
+    if(ans==0){
+        cout<<"No errror"<<endl;
+    }
+    else{
+        cout<<"Error at "<<ans<<endl;
+    }
+
+
+    
+    
+}
