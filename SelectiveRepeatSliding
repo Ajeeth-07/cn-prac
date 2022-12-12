@@ -1,0 +1,141 @@
+Program:
+
+#include<iostream>
+#include<stdlib.h>
+#include<time.h>
+#include<math.h>
+using namespace std;
+#define TOT_FRAMES 500
+#define FRAMES_SEND 50
+
+class sel_repeat{
+	private:
+		int fr_send_at_instance;
+		int arr[TOT_FRAMES];
+		int send[FRAMES_SEND];
+		int rcvd[FRAMES_SEND];
+		char rcvd_ack[FRAMES_SEND];
+		int sw;
+		int rw;       
+		public:
+		void input();
+		void sender(int);
+		void receiver(int);
+};
+
+void sel_repeat::input(){
+	int n;     
+	int m;    
+	int i;
+	cout<<"\n\n\t\t^v^v^v^v^v^v^v^v^v^v^v^v^v^SELECTIVE REPEAT PROTOCOL^v^v^v^V^v^v^v^v^v^v^v^v^v^v^v^\n\n";
+	cout<<"\t\t----->Enter number of bits for the sequence number --> ";
+	cin>>n;
+	cout<<"\n";
+	m=pow(2,n);
+	int t=0;
+	fr_send_at_instance=m;
+	for(i=0;i<TOT_FRAMES;i++){
+		arr[i]=t;
+		t=(t+1)%m;
+	}
+
+	for(i=0;i<fr_send_at_instance;i++){
+		send[i]=arr[i];
+		rcvd[i]=arr[i];
+		rcvd_ack[i]='n';
+	}
+	rw=sw=fr_send_at_instance;
+	sender(m);
+}
+
+void sel_repeat::sender(int m){
+	for(int i=0;i<fr_send_at_instance;i++){
+		if(rcvd_ack[i]=='n')
+		cout<<"\n\t\t\t-->Sender: Frame --> "<<send[i]<<" has sent.....\n";
+	}
+receiver(m);
+}
+
+void sel_repeat::receiver(int m){
+	time_t t;
+	int f;
+	int j;
+	int f1;
+	int a1;
+	char ch;
+	srand((unsigned)time(&t));
+	for(int i=0;i<fr_send_at_instance;i++){
+		if(rcvd_ack[i]=='n'){
+			f=rand()%10;
+			if(f!=5){
+				for(int j=0;j<fr_send_at_instance;j++)
+					if(rcvd[j]==send[i]){
+						cout<<"\n\t\t\tReceiver: Frame --> "<<rcvd[j]<<" recieved successfully......\n";
+						rcvd[j]=arr[rw];
+						rw=(rw+1)%m;
+						break;
+					}
+				int j;
+				if(j==fr_send_at_instance)
+					cout<<"\n\t\tReciever: Duplicate frame --> "<<send[i]<<"discarded.....\n";
+				a1=rand()%5;
+				if(a1==3){
+					cout<<"\n\t\tAcknowledgement --> "<<send[i]<<" lost\n";
+					cout<<"\n\t\tSender timeouts\n\n\t\t\t\t\t-->Resend the frame......\n";
+					rcvd_ack[i]='n';
+				}
+				else{
+					cout<<"\n\t\t\tAcknowledgement -->"<<send[i]<<" has recieved......\n";
+					rcvd_ack[i]='p';
+				}
+			}
+			else{
+				int ld=rand()%2;
+				if(ld==0){
+					cout<<"\n\t\t\tReceiver: Frame --> "<<send[i]<<" has damaged......\n";
+					cout<<"\n\t\t\tReceiver: Negative Acknowledgement --> "<<send[i]<<" has sent.....\n";
+				}
+				else{
+					cout<<"\n\t\tReceiver: Frame --> "<<send[i]<<" has lost.....\n";
+					cout<<"\n\t\t\tSender: Timeout\n\n\t\t\t\t\t\t-->Resends the Frame.....\n";
+				}
+				rcvd_ack[i]='n';
+			}
+		}	
+	}
+
+	for(int j=0;j<fr_send_at_instance;j++){
+		if(rcvd_ack[j]=='n')
+			break;
+	}
+	int i=0;
+	for(int k=j;k<fr_send_at_instance;k++){
+		send[i]=send[k];
+		if(rcvd_ack[k]=='n')
+			rcvd_ack[i]='n';
+		else
+			rcvd_ack[i]='p';
+		i++;
+	}
+
+	if(i!=fr_send_at_instance){
+		for(int k=i;k<fr_send_at_instance;k++){
+			send[k]=arr[sw];
+			sw=(sw+1)%m;
+			rcvd_ack[k]='n';
+		}
+	}
+
+cout<<"\n\n\t--> Enter y/Y to send the packets that have been left --> ";
+cin>>ch;
+cout<<"\n";
+if(ch=='y'|| ch== 'Y')
+	sender(m);
+else
+	exit(0);
+}
+
+int main(){
+sel_repeat sr;
+sr.input();
+}
