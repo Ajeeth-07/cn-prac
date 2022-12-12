@@ -1,0 +1,183 @@
+protocol.h
+
+#include<iostream>
+using namespace std;
+
+class Packet{
+	
+	public:	char data;
+};
+
+
+class Frame{
+	
+	public:	int SQN;
+			Packet P;
+			
+};
+
+void wait_for_event()
+{
+	cout<<"\n\nWaiting......... for an Event";	
+}
+
+
+void from_network_layer()
+{
+	cout<<"\n\nTaking a Packet from the NETWORK LAYER.....\n";
+}
+
+void to_network_layer()
+{
+	cout<<"\n\nDeliver.... packet to the NETWORK LAYER......\n ";
+}
+
+void from_physical_layer()
+{
+	cout<<"\n\nTaking... frame from the PHYSICAL LAYER....... ";
+}
+
+ 
+void to_physical_layer(int i, int k)
+{
+	if(i==0)
+		cout<<"\n\nSending... the Frame F --> "<<k<<" to the PHYSICAL LAYER.....";
+	else
+		cout<<"\n\nSending.... Acknowledgement A --> "<<(k+1)%2<<" to the Sender...";
+}
+
+void framing(int n)
+{
+	cout<<"\n\nConstructing the Frame F"<<n<<".";
+}
+
+
+Program:
+
+#include <iostream>
+#include <cstdlib>
+#include <ctime>
+#include <string.h>
+#include "protocol.h"
+using namespace std;
+
+int receiver(Frame F)
+{
+	
+	cout<<"\n\                              Receiver End\n\n";
+	static int D=1;
+	wait_for_event();
+
+	int n=(rand() % 8);
+
+	
+	if(n==6)
+		return 6;
+	
+	cout<<"\n\nReceived Frame F --> "<<F.SQN;
+	from_physical_layer();
+	
+	if(n==7)
+		return 7;
+		
+	if(D==F.SQN)
+		cout<<"\n\n>>>>>>>>>>>>>>>Duplicate Frame Arrived, So Discarded....\n";
+	else
+	{
+		D=F.SQN;	
+		to_network_layer();	
+	
+	}
+		
+	to_physical_layer(1, F.SQN);
+	
+	if(n==5)
+		return 5;
+		
+	if(n==1||n==2||n==3||n==4)
+		return n;
+		
+	if(n==0)
+		return 0;
+		
+}
+
+void sender(Packet s, int n)
+{
+	cout<<"\n                            Sender End\n";
+	from_network_layer();
+	
+	framing(n);
+	
+	Frame F;
+	F.P=s;
+	F.SQN=n;
+	
+	while(true)
+	{
+		
+		to_physical_layer(0, n);
+		
+		cout<<"\n>>>>>>>>>>>>>>>>>>>>>>>>Sending Frame F --> "<<n<<" to receiver";
+		
+//		start_timer();
+		        
+		int t=receiver(F);
+		
+		switch(t)
+		{
+			case 1:
+			case 2:
+			case 3:
+			case 4: cout<<"\n                            Sender End\n";
+					cout<<"\n\t\t Acknowledgement A successfully Received......"<<(F.SQN+1)%2;
+						  return; 
+			
+			case 5: cout<<"\n\t\tAcknowledgement A --> "<<(F.SQN+1)%2<<" has lost.........\n";
+					break;
+			
+			case 6: cout<<"\n\t\tFrame F --> "<<n<<" has lost\n";
+					break;
+					
+			case 7: cout<<"\n\t\tFrame F --> "<<n<<" is Damaged, so discarded.........\n";
+					 break;
+					 
+			default: break;
+			
+		}	
+		
+		cout<<"\n                              Sender End\n";
+		cout<<"\n\t\t>>>>>>>>>>>>>>>>Time out.......\n";
+//		stop_timer();
+		cout<<"\n\t\t---> Frame F --> "<<n<<" has sent Again....\n";
+	}
+}
+
+int main()
+{
+	int n;
+	string S;
+	cout<<"\nEnter the Data you want to Send --> : ";
+	getline(cin, S);
+	n=S.size();
+	
+	srand(time(NULL));
+	
+	cout<<"\n\t\tMessage has been transmitted........\n";
+	
+	for(int i=0; i<n; i++)
+	{
+		cout<<"\nSending Data --> "<<i+1<<" : "<<S[i]<<endl;
+		
+		Packet P;
+		P.data=S[i];
+		
+		sender(P, i%2);
+		
+		cout<<"\n\n";
+		
+	}
+	
+	cout<<"\n\n__________________________________STOP AND WAIT COMPLETES_________________________________";
+	return 0;
+}
